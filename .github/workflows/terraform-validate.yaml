@@ -1,0 +1,69 @@
+name: Terraform code check
+on:
+  push:
+    branches-ignore:
+      - main
+    paths:
+      - "*.tf"
+      - ".github/workflows/terraform-validate.yaml"
+  pull_request:
+
+concurrency:
+  group: tf-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name != github.repository
+
+    env:
+      AWS_DEFAULT_REGION: test
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "16"
+
+      - name: Get terraform version
+        id: terraform-info
+        run: |
+          tf_version="$(cat .terraform-version)"
+          echo "tf-version=${tf_version}" >> $GITHUB_OUTPUT
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ steps.terraform-info.outputs.tf-version }}
+
+      - uses: terraform-linters/setup-tflint@v4
+        name: Setup TFLint
+        with:
+          tflint_version: latest
+
+      - uses: actions/cache@v4
+        name: Cache tflint plugin dir
+        with:
+          path: ~/.tflint.d/plugins
+          key: self-hosted-tflint-${{ hashFiles('.tflint.hcl') }}
+
+      - name: Check Terraform formatting
+        run: terraform fmt --recursive -check
+
+      - name: Validate module
+        run: |
+          terraform init -backend=false
+          terraform validate
+
+      - name: Lint module
+        run: |
+          tflint --init
+          tflint -f compact .
