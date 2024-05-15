@@ -2,11 +2,11 @@ name: Terraform Workflow with Caching
 
 on:
   push:
-    branches:
+    branches-ignore:
       - main
-  pull_request:
-    branches:
-      - main
+    paths:
+      - "*.tf"
+      - ".github/workflows/terraform-caching.yaml"
 
 jobs:
   terraform:
