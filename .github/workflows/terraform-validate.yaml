@@ -67,3 +67,31 @@ jobs:
         run: |
           tflint --init
           tflint --chdir . -f compact
+  
+  terraform:
+    name: Terraform
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Cache Terraform binary
+      - name: Cache Terraform binary
+        uses: actions/cache@v4
+        with:
+          path: ~/.terraform.d/plugins
+          key: ${{ runner.os }}-terraform-${{ hashFiles('**/.terraform.lock.hcl') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
+      # Cache Terraform modules
+      - name: Cache Terraform modules
+        uses: actions/cache@v4
+        with:
+          path: .terraform
+          key: ${{ runner.os }}-terraform-modules-${{ hashFiles('**/*.tf') }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-modules-
+
+      - name: Initialize Terraform
+        run: terraform init
