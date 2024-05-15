@@ -169,7 +169,7 @@ module "eks" {
 
   eks_managed_node_groups = {
     nodegroup-az1 = {
-      instance_types = ["t1.2xlarge"]
+      instance_types = [var.default_instance_type]
 
       min_size     = 3
       max_size     = 5
