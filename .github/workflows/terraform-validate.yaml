@@ -66,4 +66,4 @@ jobs:
       - name: Lint module
         run: |
           tflint --init
-          tflint -f compact .
+          tflint --chdir . -f compact
