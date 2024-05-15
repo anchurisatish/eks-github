@@ -21,7 +21,7 @@ variable "eks_version" {
 variable "default_instance_type" {
   description = "Default EC2 instance type for the two initial worker nodes."
   type        = string
-  default     = "t3.medium"
+  default     = "t1.2xlarge"
 }
 
 variable "enable_public_cluster_endpoint" {
